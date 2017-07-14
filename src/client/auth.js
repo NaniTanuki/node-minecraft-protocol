@@ -1,4 +1,5 @@
 const yggdrasil = require('yggdrasil')({});
+const mcleaks = require('node-mcleaks');
 const UUID = require('uuid-1345');
 
 module.exports = function(client, options) {
@@ -6,7 +7,26 @@ module.exports = function(client, options) {
   options.accessToken = null;
   options.haveCredentials = options.password != null || (clientToken != null && options.session != null);
 
-  if(options.haveCredentials) {
+  if(options.mcleakstoken) {
+    mcleaks.redeem({
+      token: options.mcleakstoken
+    }, (err, data) => {
+      if(err) {
+        client.emit('error', err);
+      } else {
+        client.mcleaks = {
+          session: data.session,
+          mcname: data.mcname
+        };
+        client.username = mcname;
+      }
+    })
+  } else if(options.mcleakssession) {
+    client.mcleaks = {
+      session: options.mcleakssession,
+      mcname: client.username
+    };
+  } else if(options.haveCredentials) {
     // make a request to get the case-correct username before connecting.
     const cb = function(err, session) {
       if(err) {
